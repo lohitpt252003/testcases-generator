@@ -1,0 +1,6 @@
+var a: int(0, 100);
+var b: int;
+var c: char;
+var d:   float;
+// Comment1
+/* Multi comment */
