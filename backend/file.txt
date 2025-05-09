@@ -1,2 +1,1 @@
-// This is single line comment
-/* Multiline comment */
+var n1 : int(0, 100);

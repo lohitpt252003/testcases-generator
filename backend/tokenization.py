@@ -16,7 +16,7 @@ def tokenization(code):
     size = len(code)
     line = 1
     column = 1
-    keywords = {'int', 'float', 'char', 'string'}
+    keywords = {'int', 'float', 'char', 'string', 'var', 'lower', 'upper'}
 
     def cur_char():
         return code[pos] if pos < size else None
@@ -168,9 +168,26 @@ def tokenization(code):
             continue
         
         # Punctuators
-        elif current_char in '(){},;[]':
+        elif current_char in '(){},;:[]':
             punct = current_char
-            tokens.append(Token(punct, 'PUNCTUATOR', current_line, current_col))
+            token_type = ''
+            if current_char == '(':
+                token_type = 'LPAREN'
+            elif current_char == ')':
+                token_type = 'RPAREN'
+            elif current_char == ':':
+                token_type = 'COLON'
+            elif current_char == ';':
+                token_type = 'SEMICOLON'
+            elif current_char == ',':
+                token_type = 'COMMA'
+            elif current_char == '}':
+                token_type = 'CURLY_RPAREN'
+            elif current_char == '[':
+                token_type = 'SQUARE_LPAREN'
+            elif current_char == ']':
+                token_type = 'SQUARE_RPAREN'
+            tokens.append(Token(punct, token_type, current_line, current_col))
             advance()
             continue
         

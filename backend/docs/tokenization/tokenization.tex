@@ -1,0 +1,137 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\geometry{a4paper, margin=1in}
+
+\title{Tokenization Module Documentation}
+\author{Lohit P Talavar}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\section{Overview}
+The \texttt{tokenization.py} module converts source code into a stream of tokens for the STCL language. 
+It handles:
+\begin{itemize}
+    \item Whitespace and comment skipping
+    \item Identifier/keyword recognition
+    \item Number/string literal parsing
+    \item Error handling with line/column tracking
+\end{itemize}
+
+\section{Token Class}
+\subsection{Structure}
+\begin{lstlisting}[language=Python]
+class Token:
+    def __init__(self, value, type, line, column):
+        self.value = value  # Raw token value
+        self.type = type    # Token category
+        self.line = line    # Source line number
+        self.column = column# Starting column position
+\end{lstlisting}
+
+\subsection{Token Types}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Type} & \textbf{Examples} \\ \hline
+KEYWORD & var, int, float, char \\ \hline
+IDENTIFIER & count, temperature \\ \hline
+INT & 42, -15, 0 \\ \hline
+FLOAT & 3.14, -0.5e-3 \\ \hline
+STRING & "hello", 'A' \\ \hline
+OPERATOR & +, -, *, / \\ \hline
+PUNCTUATOR & (, ), \{, \}, :, ; \\ \hline
+COMMENT & //..., /*...*/ \\ \hline
+ERROR & Invalid tokens \\ \hline
+\end{tabular}
+
+\section{Main Tokenization Flow}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\textwidth]{tokenizer_flow.png}
+\caption{Tokenization process flowchart}
+\end{figure}
+
+\section{Key Functions}
+\subsection{tokenization(code: str) $\rightarrow$ list[Token]}
+Main entry point that processes the input string.
+
+\subsubsection{Workflow}
+\begin{enumerate}
+    \item Initialize position tracking (line/column)
+    \item Process characters until EOF
+    \item Dispatch to helper functions based on current char
+    \item Collect tokens with source positions
+\end{enumerate}
+
+\subsection{Helper Functions}
+\begin{itemize}
+    \item \texttt{advance()}: Move to next character
+    \item \texttt{skip\_whitespaces()}: Skip spaces/tabs/newlines
+    \item \texttt{skip\_comment()}: Handle // and /* */ comments
+    \item \texttt{read\_identifier()}: Capture [a-zA-Z0-9\_]+
+    \item \texttt{read\_number()}: Parse int/float literals
+    \item \texttt{read\_string()}: Process quoted strings
+\end{itemize}
+
+\section{Error Handling}
+\subsection{Detected Errors}
+\begin{itemize}
+    \item Unterminated strings/comments
+    \item Invalid number formats
+    \item Unexpected characters
+    \item Malformed operators
+\end{itemize}
+
+\subsection{Error Reporting}
+Errors raise \texttt{SyntaxError} with format:
+\begin{verbatim}
+SyntaxError: <message> at line <line>:<column>
+\end{verbatim}
+
+\section{Examples}
+\subsection{Input Code}
+\begin{lstlisting}
+var count: int(0, 100); // Simple counter
+var msg: string("Hello", lower+upper);
+\end{lstlisting}
+
+\subsection{Generated Tokens}
+\begin{lstlisting}
+Token('var', 'KEYWORD', line=1, column=1)
+Token('count', 'IDENTIFIER', line=1, column=5)
+Token(':', 'COLON', line=1, column=10)
+Token('int', 'KEYWORD', line=1, column=12)
+Token('(', 'LPAREN', line=1, column=15)
+Token('0', 'INT', line=1, column=16)
+Token(',', 'COMMA', line=1, column=17)
+Token('100', 'INT', line=1, column=19)
+Token(')', 'RPAREN', line=1, column=22)
+Token(';', 'SEMICOLON', line=1, column=23)
+Token('// Simple counter', 'COMMENT', line=1, column=25)
+...
+\end{lstlisting}
+
+\section{Edge Case Handling}
+\subsection{Valid Cases}
+\begin{itemize}
+    \item Numbers: \texttt{.5}, \texttt{1e-5}, \texttt{123\_456}
+    \item Strings: \texttt{"Embedded\\"quote"}, \texttt{'multi\nline'}
+    \item Comments: \texttt{/* Nested /* comments */ */}
+\end{itemize}
+
+\subsection{Invalid Cases}
+\begin{itemize}
+    \item \texttt{var 123bad: int;} (Invalid identifier)
+    \item \texttt{var price: float(1.2.3);} (Invalid float)
+    \item \texttt{var str: "unclosed string;} (Missing quote)
+\end{itemize}
+
+\end{document}
