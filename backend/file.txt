@@ -1,3 +1,2 @@
-var n1 : int;
-var n2  : float(0, 10);
-var n3  : float(0, 10, 5);
+var a : int;
+var invalid_neg: int(-a, 10);

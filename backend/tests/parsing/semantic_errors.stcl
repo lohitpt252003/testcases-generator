@@ -1,0 +1,6 @@
+// Semantic issues
+var count: int;  
+var count: float;              // Duplicate declaration  
+var temp: float(low, high);    // Undefined identifiers  
+var precision: float(0, 1, x); // x not an integer  
+var invalid: char(lower+123);  // Invalid charset

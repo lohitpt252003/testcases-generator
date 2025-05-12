@@ -1,4 +1,5 @@
 def parse(tokens):
+    tokens = [token for token in tokens if token.type != 'COMMENT']
     ast = []
     index = 0
     symbol_table = {}
@@ -97,6 +98,9 @@ def parse(tokens):
     
     def parse_number():
         token = current_token()
+        if token and token.value == '-':
+            advance()
+            token = current_token()
         if token and token.type in ['INT', 'FLOAT', 'IDENTIFIER']:
             value = token.value
             advance()
@@ -137,7 +141,10 @@ def parse(tokens):
 
     try:
         while index < len(tokens):
-            ast.append(parse_variable_declaration())
+            if tokens[index].type == 'COMMENT':
+                index += 1
+            else:
+                ast.append(parse_variable_declaration())
         return {'ast': ast, 'errors': []}
     except SyntaxError as e:
         return {'ast': ast, 'errors': [str(e)]}

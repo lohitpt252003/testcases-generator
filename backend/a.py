@@ -6,10 +6,16 @@ with open("file.txt", "r") as file:
 
 try:
     tokens = tokenization(code)
-    print(tokens)
+    # print(tokens)
     for token in tokens:
         print(token)
     root = parse(tokens)
-    print(root)
+    ast = root['ast']
+    for node in ast:
+        print(node)
+    errors = root['errors']
+    print(errors)
+    # for node in root:
+    #     print(node)
 except SyntaxError as e:
     print(f"Error: {e}")

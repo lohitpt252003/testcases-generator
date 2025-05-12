@@ -1,0 +1,5 @@
+// Basic variable declarations
+var count: int(0, 100);  
+var price: float(-10.5, 99.99, 2);  
+var symbol: char(upper+special);  
+var greeting: string(10, lower+digit);  

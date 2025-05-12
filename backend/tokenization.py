@@ -16,7 +16,7 @@ def tokenization(code):
     size = len(code)
     line = 1
     column = 1
-    keywords = {'int', 'float', 'char', 'string', 'var', 'lower', 'upper'}
+    keywords = {'int', 'float', 'char', 'string', 'var'}
 
     def cur_char():
         return code[pos] if pos < size else None
@@ -74,23 +74,37 @@ def tokenization(code):
     def read_number():
         start = pos
         is_float = False
-        has_digit = False  # Track if we've seen any digits
-        
+        has_digit = False
+        negative = False
+
+        # Check for leading '-' (if followed by a digit or .)
+        if cur_char() == '-' and (pos + 1 < size) and (code[pos + 1].isdigit() or code[pos + 1] == '.'):
+            advance()  # Consume the '-'
+            negative = True
+            start = pos  # Reset start after consuming '-'
+
+        # Handle numbers like -.5
+        if cur_char() == '.' and (pos + 1 < size) and code[pos + 1].isdigit():
+            is_float = True
+            advance()
+
+        # Process digits and .
         while pos < size and (code[pos].isdigit() or code[pos] == '.'):
             if code[pos] == '.':
                 if is_float:
-                    break  # Multiple dots error
+                    break  # Multiple dots → invalid
                 is_float = True
             else:
                 has_digit = True
             advance()
-        
-        # Handle numbers starting with '.' (e.g., .5)
-        if not has_digit:
+
+        if not has_digit and not is_float:
             return None  # Not a valid number
-        
-        return code[start:pos]
-    
+
+        num_str = code[start:pos]
+        if negative:
+            num_str = '-' + num_str
+        return num_str
     def read_string():
         quote_type = code[pos]  # ' or "
         start_line = line
@@ -132,7 +146,10 @@ def tokenization(code):
             continue
         
         # Numbers (including those starting with .)
-        elif current_char.isdigit() or (current_char == '.' and pos + 1 < size and code[pos + 1].isdigit()):  # FIXED
+        # In the main loop:
+        elif (current_char == '-' and (pos + 1 < size) and (code[pos + 1].isdigit() or code[pos + 1] == '.')) \
+                or current_char.isdigit() \
+                or (current_char == '.' and (pos + 1 < size) and code[pos + 1].isdigit()):
             num_str = read_number()
             if num_str is None:
                 raise SyntaxError(f"Invalid number format at {current_line}:{current_col}")

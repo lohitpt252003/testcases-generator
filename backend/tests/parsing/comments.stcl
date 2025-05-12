@@ -1,0 +1,6 @@
+/* Block comment */  
+var x: int( /* Embedded comment */ 0, 100 );  
+var y: string(  
+  5,  // Line comment  
+  lower+upper  
+);

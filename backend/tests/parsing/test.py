@@ -5,6 +5,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from tokenization import tokenization
+from parser import parse
 
 # Get all files in the current directory ending with .stcl
 files = [file for file in os.listdir() if file.endswith('.stcl')]
@@ -24,10 +25,20 @@ def run_test(i):
     print('=== End of Code ===\n')
     try:
         tokens = tokenization(codes[i])
-        for token in tokens:
-            print(token)
+        parser = parse(tokens)
+        ast = parser['ast']
+        errors = parser['errors']
+        print("=== Printing AST ===")
+        for node in ast:
+            print(node)
+        
+        print("=== Printing errors ===")
+        if not len(errors):
+            print("No errors, Looks good!\n\n\n")
+        else:
+            print(errors)
     except SyntaxError as e:
-        print(f"Error: {e}")
+        print(e)
     print(f'=== Done with Test {i + 1} ===\n\n')
 
 

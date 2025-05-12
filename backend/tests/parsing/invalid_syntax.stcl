@@ -1,0 +1,5 @@
+// Syntax errors
+var x int;                   // Missing colon  
+var y: float(1.0, 2.0, ;     // Trailing comma  
+var z: string(5, lower+;     // Unterminated charset  
+var a: int(0, 100;           // Missing closing ')'

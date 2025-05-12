@@ -1,0 +1,6 @@
+// Negative values and identifiers as parameters
+var min_temp: int(-50, -10);  
+var offset: float(-.5, 1e3);  // -.5 and scientific notation  
+var empty_str: string(0, lower);  // Zero size  
+var weird_num: float(123_, 456);  // Underscore (if tokenizer allows)  
+var id_param: int(x, y);  // x/y must be defined as integers in symbol_table
