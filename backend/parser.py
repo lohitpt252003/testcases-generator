@@ -99,7 +99,7 @@ def parse(tokens):
     def parse_number():
         token = current_token()
         neg = False
-        if token and token.value == '-':
+        if token and token.type == 'OPERATOR' and token.value == '-':
             advance()
             token = current_token()
             neg = True
