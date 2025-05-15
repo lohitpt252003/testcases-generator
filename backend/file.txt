@@ -1,2 +1,2 @@
 var a : int;
-var invalid_neg: int(-a, 10);
+var _neg: int(a, 10);

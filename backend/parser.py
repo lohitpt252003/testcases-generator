@@ -36,7 +36,7 @@ def parse(tokens):
             raise_syntax_error(f'Duplicate declaration of \'{var_name}\'', name_token)
 
         expect_token('COLON', error_message='Expected \':\' after identifier')
-        type_token = expect_token('KEYWORD', ['int', 'float', 'char', 'string'], 'Invalid type')
+        type_token = expect_token('KEYWORD', ['int', 'float', 'char', 'string'], 'Invalid type of data type')
 
         symbol_table[var_name] = type_token.value
 
@@ -98,18 +98,32 @@ def parse(tokens):
     
     def parse_number():
         token = current_token()
+        neg = False
         if token and token.value == '-':
             advance()
             token = current_token()
-        if token and token.type in ['INT', 'FLOAT', 'IDENTIFIER']:
+            neg = True
+        if token and token.type in ['INT', 'FLOAT']:
             value = token.value
             advance()
+            if neg:
+                value = -value
             return {'type': 'number', 'value': value}
+        elif token.type == 'IDENTIFIER':
+            if token.value in symbol_table:
+                value = token.value
+                advance()
+                if neg:
+                    value = '-' + value
+                return {'type': 'number', 'value': value}
+            else:
+                raise_syntax_error(f'Identifier {token.value} is not defined', token)
+
         raise_syntax_error('Expected numeric value or identifier', token)
     
     def parse_integer():
         token = current_token()
-        if token and (token.type == 'INT' or (token.type == 'IDENTIFIER' and is_valid_integer_identifier(token))):
+        if token and (token.type == 'INT' or (token.type == 'IDENTIFIER' and is_valid_positive_integer_identifier(token))):
             value = token.value
             advance()
             return {'type': 'integer', 'value': value}
@@ -131,7 +145,7 @@ def parse(tokens):
                 break
         return '+'.join(parts)
     
-    def is_valid_integer_identifier(token):
+    def is_valid_positive_integer_identifier(token):
         identifier = token.value
         if identifier not in symbol_table:
             raise_syntax_error(f'Undefined identifier \'{identifier}\'', token)
@@ -141,10 +155,7 @@ def parse(tokens):
 
     try:
         while index < len(tokens):
-            if tokens[index].type == 'COMMENT':
-                index += 1
-            else:
-                ast.append(parse_variable_declaration())
+            ast.append(parse_variable_declaration())
         return {'ast': ast, 'errors': []}
     except SyntaxError as e:
         return {'ast': ast, 'errors': [str(e)]}
