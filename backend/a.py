@@ -12,12 +12,9 @@ try:
     root = parse(tokens)
     ast = root['ast']
     for node in ast:
-        print(node['params'])
+        print(node)
     _errors = analyse(root)
     print('ERRORS FROM SEMANTIC ANALYSIS:', _errors['errors'])
-    # errors = root['errors']
-    # print(errors)
-    # for node in root:
-    #     print(node)
+
 except SyntaxError as e:
     print(f"Error: {e}")
