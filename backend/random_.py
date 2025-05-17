@@ -2,10 +2,10 @@ import random
 import string
 
 def generate_integer(lower = 0, upper = int(1e18)):
-    return random.randint(lower, upper)
+    return random.randint(int(lower), int(upper))
 
 def generate_float(lower = 0, upper = 1e18, precision = 6):
-    return round(random.uniform(lower, upper), precision)
+    return round(random.uniform(int(lower), int(upper)), int(precision))
 
 def generate_char(charset = ['upper', 'lower', 'digit', 'special']):
     sets = {

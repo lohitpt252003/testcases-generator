@@ -1,4 +1,0 @@
-var a : int;
-var b: int(-10, 10);
-var c : int(-a, 10);
-var d : int (b, c);

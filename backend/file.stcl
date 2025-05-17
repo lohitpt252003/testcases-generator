@@ -1,0 +1,3 @@
+var a : int(10, 20);
+
+var b : float(n, 10, 0);

@@ -2,7 +2,6 @@ def parse(tokens):
     tokens = [token for token in tokens if token.type != 'COMMENT']
     ast = []
     index = 0
-    symbol_table = {}
 
     def current_token():
         return tokens[index] if index < len(tokens) else None
@@ -32,13 +31,10 @@ def parse(tokens):
         name_token = expect_token('IDENTIFIER', error_message='Expected Identifier')
 
         var_name = name_token.value
-        if var_name in symbol_table:
-            raise_syntax_error(f'Duplicate declaration of \'{var_name}\'', name_token)
-
+        
         expect_token('COLON', error_message='Expected \':\' after identifier')
         type_token = expect_token('KEYWORD', ['int', 'float', 'char', 'string'], 'Invalid type of data type')
 
-        symbol_table[var_name] = type_token.value
 
         params = {}
         if current_token() and current_token().value == '(':
@@ -70,20 +66,20 @@ def parse(tokens):
         return params
     
     def parse_int_params():
-        lower = parse_number()
+        lower = parse_limit()
         expect_token('COMMA', error_message='Expected \',\' in int parameters')
-        upper = parse_number()
+        upper = parse_limit()
         return {'lower': lower, 'upper': upper}
     
     def parse_float_params():
-        lower = parse_number()
+        lower = parse_limit()
         expect_token('COMMA', error_message='Expected \',\' in float parameters')
-        upper = parse_number()
+        upper = parse_limit()
         precision = None
 
         if current_token() and current_token().value == ',':
             advance()
-            precision = parse_integer()
+            precision = parse_precision()
         
         return {'lower': lower, 'upper': upper, 'precision': precision}
     
@@ -96,41 +92,92 @@ def parse(tokens):
         charset = parse_charset_expr()
         return {'size': size, 'charset': charset}
     
-    def parse_number():
+    def parse_limit():
+        # limit can be int, float or a (int, float) identifier
+        # +ve or -ve
         token = current_token()
-        neg = False
-        if token and token.type == 'OPERATOR' and token.value == '-':
+        op = False
+        if token and token.type == 'OPERATOR' and token.value in '+-':
+            operator = token.value
             advance()
             token = current_token()
-            neg = True
+            op = True
         if token and token.type in ['INT', 'FLOAT']:
-            value = token.value
+            _value = token.value
             advance()
-            if neg:
-                value = -value
-            return {'type': 'number', 'value': value}
-        elif token.type == 'IDENTIFIER':
-            if token.value in symbol_table:
-                value = token.value
-                advance()
-                if neg:
-                    value = '-' + value
-                return {'type': 'number', 'value': value}
+            if op:
+                value = {
+                    'OPERATOR' : operator,
+                    'value' : {
+                        'type' : f'{token.type.lower()}',
+                        'value' : _value
+                    }
+                }
             else:
-                raise_syntax_error(f'Identifier {token.value} is not defined', token)
-
-        raise_syntax_error('Expected numeric value or identifier', token)
+                value = _value
+        elif token.type == 'IDENTIFIER':
+            _value = token.value
+            advance()
+            if op:
+                value = {
+                    'OPERATOR' : operator,
+                    'value' : {
+                        'type' : 'IDENTIFIER',
+                        'value' : _value
+                    }
+                }
+            else:
+                value = _value
+        else:
+            raise_syntax_error('Expected numeric value or identifier', token)
+        
+        return {'type': 'number', 'value': value}
     
-    def parse_integer():
+    def parse_precision():
         token = current_token()
-        if token and (token.type == 'INT' or (token.type == 'IDENTIFIER' and is_valid_positive_integer_identifier(token))):
+        if token and token.type == 'INT' and token.value <= 6:
             value = token.value
             advance()
             return {'type': 'integer', 'value': value}
-        raise_syntax_error('Expected integer value or identifier', token)
+        raise_syntax_error('Expected positive integer and the precision must be a constatnt and it should less than or equal to 6', token)
     
     def parse_size():
-        return parse_number()
+        token = current_token()
+        op = False
+        if token and token.type == 'OPERATOR' and token.value in '+-':
+            operator = token.value
+            advance()
+            token = current_token()
+            op = True
+        if token and token.type == 'INT':
+            _value = token.value
+            advance()
+            if op:
+                value = {
+                    'OPERATOR' : operator,
+                    'value' : {
+                        'type' : f'{token.type.lower()}',
+                        'value' : _value
+                    }
+                }
+            else:
+                value = _value
+        elif token.type == 'IDENTIFIER':
+            _value = token.value
+            advance()
+            if op:
+                value = {
+                    'OPERATOR' : operator,
+                    'value' : {
+                        'type' : 'IDENTIFIER',
+                        'value' : _value
+                    }
+                }
+            else:
+                value = _value
+        else:
+            raise_syntax_error(token = token, error_message = 'Expected a integer or a integer identifier')
+        return {'type': 'number', 'value': value}
     
     def parse_charset_expr():
         parts = []
@@ -145,14 +192,6 @@ def parse(tokens):
                 break
         return '+'.join(parts)
     
-    def is_valid_positive_integer_identifier(token):
-        identifier = token.value
-        if identifier not in symbol_table:
-            raise_syntax_error(f'Undefined identifier \'{identifier}\'', token)
-        if symbol_table[identifier] != 'int':
-            raise_syntax_error(f'Identifier \'{identifier}\' is not an integer', token)
-        return True
-
     try:
         while index < len(tokens):
             ast.append(parse_variable_declaration())

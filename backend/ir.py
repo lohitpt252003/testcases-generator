@@ -2,48 +2,92 @@ from random_ import generate_char, generate_float, generate_integer, generate_st
 
 def ir(ast):
     nodes = ast['ast']
+    variable_map = {}
     output_arr = []
 
     for node in nodes:
         if node['type'] == 'VariableDecl':
             name = node['name']
-            params = node.get('params', {})
+            params = node['params']
             data_type = node['data_type']
-            value = None
-
+            # name, type, value, constraints
+            
             if data_type == 'int':
-                # Handle integer constraints
-                if 'lower' in params and 'upper' in params:
-                    value = generate_integer(
-                        lower=params['lower']['value'],
-                        upper=params['upper']['value']
-                    )
-                else:
+                if not params:
                     value = generate_integer()
-
+                    constraints = {}
+                else:
+                    lower = params['lower']['value']
+                    upper = params['upper']['value']
+                    if isinstance(lower, int):
+                        _lower = lower
+                    else:
+                        if lower.startswith('-'):
+                            _lower = -variable_map[lower[1 : ]]
+                        else:
+                            _lower = variable_map[lower]
+                    
+                    if isinstance(upper, int):
+                        _upper = upper
+                    else:
+                        if upper.startswith('-'):
+                            _upper = -variable_map[upper[1 : ]]
+                        else:
+                            _upper = variable_map[upper]
+                    value = generate_integer(_lower, _upper)
+                    constraints = {
+                        'lower' : lower,
+                        'upper' : upper
+                    }
+                variable_map[name] = value
+                output_arr.append(
+                    {
+                        'name' : name,
+                        'value' : value,
+                        'constraints' : constraints
+                    }
+                )
+    
             elif data_type == 'float':
-                # Handle float constraints and precision
-                precision = params.get('precision', {}).get('value', 6) if 'precision' in params else 6
-                lower = params.get('lower', {}).get('value', 0)
-                upper = params.get('upper', {}).get('value', 1e18)
-                value = generate_float(lower, upper, precision)
-
-            elif data_type == 'char':
-                # Handle character set constraints
-                charset = params.get('charset', 'lower+upper+digit+special').split('+')
-                value = generate_char(charset)
-
-            elif data_type == 'string':
-                # Handle string length and character set
-                size = params.get('size', {}).get('value', 10)
-                charset = params.get('charset', 'lower+upper+digit+special').split('+')
-                value = generate_string(size, charset)
-
-            output_arr.append({
-                'name': name,
-                'type': data_type,
-                'value': value,
-                'constraints': params
-            })
-
+                if not params:
+                    value = generate_integer()
+                    constraints = {}
+                else:
+                    lower = params['lower']['value']
+                    upper = params['upper']['value']
+                    precision = params.get('precision')
+                    if not precision:
+                        precision = 6
+                    else:
+                        precision = params.get('precision').get('value')
+                    if isinstance(lower, (int, float)):
+                        _lower = lower
+                    else:
+                        if lower.startswith('-'):
+                            _lower = -variable_map[lower[1 : ]]
+                        else:
+                            _lower = variable_map[lower]
+                    
+                    if isinstance(upper, (int, float)):
+                        _upper = upper
+                    else:
+                        if upper.startswith('-'):
+                            _upper = -variable_map[upper[1 : ]]
+                        else:
+                            _upper = variable_map[upper]
+                    value = generate_float(_lower, _upper, precision)
+                    constraints = {
+                        'lower' : lower,
+                        'upper' : upper,
+                        'precision' : precision
+                    }
+                variable_map[name] = value
+                output_arr.append(
+                    {
+                        'name' : name,
+                        'value' : value,
+                        'constraints' : constraints
+                    }
+                )
+    
     return output_arr

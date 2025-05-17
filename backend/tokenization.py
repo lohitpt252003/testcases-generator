@@ -10,7 +10,7 @@ class Token:
     def __repr__(self):
         return f'Token(\'{self.value}\', \'{self.type}\', line = {self.line}, column = {self.column})'
 
-def tokenization(code):
+def tokenize(code):
     tokens = []
     pos = 0
     size = len(code)
