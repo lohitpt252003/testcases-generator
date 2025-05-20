@@ -41,6 +41,11 @@ def parse(tokens):
             advance()
             params = parse_params(type_token.value)
             expect_token('RPAREN', error_message='Expected closing \')\'')
+        elif type_token.value == 'string':
+            expect_token('LPAREN', error_message='Expected closing \'(\'')
+            params = parse_params(type_token.value)
+            expect_token('RPAREN', error_message='Expected closing \')\'')
+
         
         expect_token('SEMICOLON', error_message='Expected \';\' at end of declaration')
         
@@ -88,8 +93,14 @@ def parse(tokens):
     
     def parse_string_params():
         size = parse_size()
-        expect_token('COMMA', error_message='Expected \',\' after string size')
-        charset = parse_charset_expr()
+        charset = {}
+        
+        if current_token() and current_token().value == ',':
+            advance()
+            charset = parse_charset_expr()
+        
+        # expect_token('COMMA', error_message='Expected \',\' after string size')
+        # charset = parse_charset_expr()
         return {'size': size, 'charset': charset}
     
     def parse_limit():
@@ -135,11 +146,11 @@ def parse(tokens):
     
     def parse_precision():
         token = current_token()
-        if token and token.type == 'INT' and token.value <= 6:
+        if token and token.type == 'INT' and token.value <= 6 and token.value >= 0:
             value = token.value
             advance()
-            return {'type': 'integer', 'value': value}
-        raise_syntax_error('Expected positive integer and the precision must be a constatnt and it should less than or equal to 6', token)
+            return value
+        raise_syntax_error('Expected non-negative integer and the precision must be a constatnt and it should less than or equal to 6', token)
     
     def parse_size():
         token = current_token()

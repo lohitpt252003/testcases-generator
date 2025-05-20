@@ -1,5 +1,7 @@
 from tokenization import tokenize
 from parser import parse
+from semantic_analyzer import analyze
+from ir import ir
 
 code = None
 
@@ -10,11 +12,11 @@ except Exception as e:
     print(f'error : ', e)
 
 if code:
-    # try:
-        tokens = tokenize(code)
-        # print(tokens)
-        root = parse(tokens)
-
-    # except Exception as e:
-    #     print(f'error : ', e)
-print(root)
+    tokens = tokenize(code)
+    parser = parse(tokens)
+    if (parser['errors']) :
+        print(f"Errors at parsing stage:")
+        for error in parser['errors']:
+            print(error)
+        exit(0)
+    

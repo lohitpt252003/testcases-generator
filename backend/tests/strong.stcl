@@ -1,0 +1,20 @@
+// Integer declarations
+var default_int: int;                  // Default constraints (0-100)
+var explicit_int: int (-100, 100);     // Literal bounds
+//var negative_int: int (-max, -min);    // Variable references
+//var large_range: int (INT_MIN, INT_MAX);
+// Float declarations
+var default_float: float;              // Default (0.0-100.0, precision=2)
+var temp: float (-273.15, 100.0);      // Without precision
+var precise: float (0.0, 1.0, 3);      // With precision
+//var ref_float: float (min_temp, max_temp, prec);
+// Character declarations
+var default_char: char;                // All charset
+var dollar: char (special);            // Single charset
+var alpha_num: char (lower+upper+digit);
+var symbols: char (special+upper);
+// String declarations
+var default_str: string(10);               // Size=10, all charset
+var id: string (10, upper+digit);      // Fixed size
+var password: string (+16, lower+upper+digit+special);
+//var dynamic_pass: string (length, lower+upper+digit+special);

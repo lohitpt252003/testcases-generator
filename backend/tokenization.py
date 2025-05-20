@@ -147,8 +147,7 @@ def tokenize(code):
         
         # Numbers (including those starting with .)
         # In the main loop:
-        elif (current_char == '-' and (pos + 1 < size) and (code[pos + 1].isdigit() or code[pos + 1] == '.')) \
-                or current_char.isdigit() \
+        elif current_char.isdigit() \
                 or (current_char == '.' and (pos + 1 < size) and code[pos + 1].isdigit()):
             num_str = read_number()
             if num_str is None:
@@ -164,7 +163,7 @@ def tokenize(code):
             continue
         
         # Strings
-        elif current_char in '\'"':
+        elif current_char in '"':
             current_token = read_string()
             tokens.append(Token(current_token, 'STRING', current_line, current_col))
             continue

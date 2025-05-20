@@ -1,3 +1,2 @@
-var a : int(10, 20);
-
-var b : float(n, 10, 0);
+var a : int(10, 10);
+var b : float(0, a, 0);

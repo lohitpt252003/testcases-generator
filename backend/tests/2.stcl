@@ -1,0 +1,7 @@
+var min_temp: int (-273, 0);
+var max_temp: int (0, 100);
+var temp: float (min_temp, max_temp, 2);
+
+var pass_length: int (8, 64);
+var charset: char (lower+upper+special);
+var password: string (pass_length, lower+upper+digit+special);

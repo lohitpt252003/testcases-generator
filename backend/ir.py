@@ -5,89 +5,103 @@ def ir(ast):
     variable_map = {}
     output_arr = []
 
+    def eval_bound(bound):
+        """
+        bound is one of:
+          - int or float
+          - str (an identifier)
+          - dict with {'OPERATOR': '+/-', 'value': nested_value}
+        Returns a numeric Python value by looking up identifiers in variable_map.
+        """
+        # literal
+        if isinstance(bound, (int, float)):
+            return bound
+
+        # identifier name
+        if isinstance(bound, str):
+            return variable_map[bound]
+
+        # unary +/- wrapper
+        if isinstance(bound, dict) and 'OPERATOR' in bound:
+            op = bound['OPERATOR']
+            inner = bound['value']
+            # inner is {'type':..., 'value':...}
+            val = inner['value']
+            v = eval_bound(val)
+            return +v if op == '+' else -v
+
+        raise ValueError(f"Cannot evaluate bound: {bound}")
+
     for node in nodes:
-        if node['type'] == 'VariableDecl':
-            name = node['name']
-            params = node['params']
-            data_type = node['data_type']
-            # name, type, value, constraints
-            
-            if data_type == 'int':
-                if not params:
-                    value = generate_integer()
-                    constraints = {}
-                else:
-                    lower = params['lower']['value']
-                    upper = params['upper']['value']
-                    if isinstance(lower, int):
-                        _lower = lower
-                    else:
-                        if lower.startswith('-'):
-                            _lower = -variable_map[lower[1 : ]]
-                        else:
-                            _lower = variable_map[lower]
-                    
-                    if isinstance(upper, int):
-                        _upper = upper
-                    else:
-                        if upper.startswith('-'):
-                            _upper = -variable_map[upper[1 : ]]
-                        else:
-                            _upper = variable_map[upper]
-                    value = generate_integer(_lower, _upper)
-                    constraints = {
-                        'lower' : lower,
-                        'upper' : upper
-                    }
-                variable_map[name] = value
-                output_arr.append(
-                    {
-                        'name' : name,
-                        'value' : value,
-                        'constraints' : constraints
-                    }
-                )
-    
-            elif data_type == 'float':
-                if not params:
-                    value = generate_integer()
-                    constraints = {}
-                else:
-                    lower = params['lower']['value']
-                    upper = params['upper']['value']
-                    precision = params.get('precision')
-                    if not precision:
-                        precision = 6
-                    else:
-                        precision = params.get('precision').get('value')
-                    if isinstance(lower, (int, float)):
-                        _lower = lower
-                    else:
-                        if lower.startswith('-'):
-                            _lower = -variable_map[lower[1 : ]]
-                        else:
-                            _lower = variable_map[lower]
-                    
-                    if isinstance(upper, (int, float)):
-                        _upper = upper
-                    else:
-                        if upper.startswith('-'):
-                            _upper = -variable_map[upper[1 : ]]
-                        else:
-                            _upper = variable_map[upper]
-                    value = generate_float(_lower, _upper, precision)
-                    constraints = {
-                        'lower' : lower,
-                        'upper' : upper,
-                        'precision' : precision
-                    }
-                variable_map[name] = value
-                output_arr.append(
-                    {
-                        'name' : name,
-                        'value' : value,
-                        'constraints' : constraints
-                    }
-                )
-    
+        if node['type'] != 'VariableDecl':
+            continue
+
+        name      = node['name']
+        dtype     = node['data_type']
+        params    = node.get('params', {})
+
+        if dtype == 'int':
+            # get bounds
+            if not params:
+                val = generate_integer()
+                constraints = {}
+            else:
+                low_obj  = params['lower']['value']
+                high_obj = params['upper']['value']
+                low  = eval_bound(low_obj)
+                high = eval_bound(high_obj)
+                val = generate_integer(low, high)
+                constraints = {'lower': low_obj, 'upper': high_obj}
+
+        elif dtype == 'float':
+            if not params:
+                val = generate_float()
+                constraints = {}
+            else:
+                low_obj  = params['lower']['value']
+                high_obj = params['upper']['value']
+                prec_obj = params.get('precision')
+                low  = eval_bound(low_obj)
+                high = eval_bound(high_obj)
+                prec = prec_obj if isinstance(prec_obj, int) else \
+                       (prec_obj.get('value') if isinstance(prec_obj, dict) else 6)
+                val = generate_float(low, high, prec)
+                if prec == 0:
+                    val = int(val)
+                constraints = {
+                    'lower': low_obj,
+                    'upper': high_obj,
+                    'precision': prec
+                }
+
+        elif dtype == 'char':
+            # params.get('charset') is something like "lower+digit+special"
+            charset_spec = params.get('charset', '')
+            charset = charset_spec.split('+') if charset_spec else ['upper','lower','digit','special']
+            val = generate_char(charset)
+            constraints = {'charset': charset_spec}
+
+        elif dtype == 'string':
+            size_obj = params['size']['value']
+            size = eval_bound(size_obj)
+            charset_spec = params.get('charset', '')
+            charset = charset_spec.split('+') if charset_spec else ['upper','lower','digit','special']
+            val = generate_string(size, charset)
+            constraints = {
+                'size': size_obj,
+                'charset': charset_spec
+            }
+
+        else:
+            # unknown type – skip
+            continue
+
+        # record
+        variable_map[name] = val
+        output_arr.append({
+            'name': name,
+            'value': val,
+            'constraints': constraints
+        })
+
     return output_arr
