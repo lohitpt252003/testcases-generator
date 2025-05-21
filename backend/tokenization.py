@@ -16,7 +16,7 @@ def tokenize(code):
     size = len(code)
     line = 1
     column = 1
-    keywords = {'int', 'float', 'char', 'string', 'var'}
+    keywords = {'int', 'float', 'char', 'string', 'var', 'lout', 'lerr'}
 
     def cur_char():
         return code[pos] if pos < size else None

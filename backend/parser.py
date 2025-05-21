@@ -203,9 +203,56 @@ def parse(tokens):
                 break
         return '+'.join(parts)
     
+    def fix_string(string):
+        # print(string)
+        string = string.replace('\\n', '\n')
+        return string
+
+    def parse_lout_statement():
+        expect_token('KEYWORD', ['lout'], 'Expected "lout" keyword')
+        expect_token('LPAREN', error_message='Expected \'(\' after lout')
+        
+        args = []
+
+        while current_token() and current_token().value != ')':
+            # print(current_token().)
+            if (current_token().type == 'STRING' or current_token().type == 'IDENTIFIER'):
+                fix_string(current_token().value)
+                args.append({
+                    'type' : current_token().type,
+                    'value' : fix_string(current_token().value)
+                })
+                advance()
+            else:
+                raise_syntax_error('Expected string or identifier in (lout) print statement', current_token())
+            
+            if current_token() and current_token().value == ',':
+                advance()
+            elif current_token() and current_token().value != ')':
+                raise_syntax_error('Expected \',\' or \')\' in (lout) print statement', current_token())
+        
+        # print("Loop se bahar toh hai")
+        expect_token('RPAREN', error_message='Expected closing \')\' after (lout) print statement')
+        expect_token('SEMICOLON', error_message='Expected \';\' at end of (lout) print statement')
+        # print("; yaha tak toh theek hai")
+
+        return {
+            'type': 'PrintStmt',
+            'args': args,
+            'line': tokens[index - 1].line if 0 <= index - 1 <= len(tokens) else None,
+            'column': tokens[index - 1].column if 0 <= index - 1 <= len(tokens) else None
+        }
+    
     try:
         while index < len(tokens):
-            ast.append(parse_variable_declaration())
+            # print(current_token().value)
+            if current_token().type == 'KEYWORD' and current_token().value == 'var':
+                ast.append(parse_variable_declaration())
+            elif current_token().type == 'KEYWORD' and current_token().value == 'lout':
+                # print("print chal raha hai")
+                ast.append(parse_lout_statement())
+            else:
+                raise_syntax_error('Unexpected token', current_token())
         return {'ast': ast, 'errors': []}
     except SyntaxError as e:
         return {'ast': ast, 'errors': [str(e)]}

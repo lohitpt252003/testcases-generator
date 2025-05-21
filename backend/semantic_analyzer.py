@@ -98,7 +98,14 @@ def analyze(ast):
                 check_string_limits(params)
 
             symbol_table[name] = data_type
-
+        elif node['type'] == 'PrintStmt':
+            for arg in node['args']:
+                if arg.get('type') == 'IDENTIFIER':
+                    ident = arg.get('value')
+                    if ident not in symbol_table:
+                        errors.append(f"Undefined variable '{ident}'")
+                elif arg.get('type') == 'STRING':
+                    continue
     return {
         'errors': errors,
         'symbol_table': symbol_table
