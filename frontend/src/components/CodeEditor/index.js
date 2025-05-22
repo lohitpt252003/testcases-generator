@@ -11,6 +11,8 @@ var price: float(0.0, 100.0, 2);
 lout("Welcome:", username);`);
   const [errors, setErrors] = useState([]);
   const [variables, setVariables] = useState([]);
+  const [stdout, setStdout] = useState([]);
+  const [stderr, setStderr] = useState([]);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
 
@@ -46,6 +48,9 @@ lout("Welcome:", username);`);
         body: JSON.stringify({ code })
       });
       const result = await response.json();
+      setStdout(result.stdout);
+      setStderr(result.stderr);
+      setErrors(result.errors);
       console.log('Execution result:', result);
     } catch (error) {
       console.error('Execution error:', error);
@@ -77,11 +82,28 @@ lout("Welcome:", username);`);
       />
 
       <div className="error-panel">
-        {errors.map((error, index) => (
-          <div key={index} className="error-message">
-            ⚠️ {error}
+        <div>
+          <h1>STDOUT</h1>
+          <div>
+            {stdout}
           </div>
-        ))}
+        </div>
+        <div>
+          <h1>STDERR</h1>
+          <div>
+            {stderr}
+          </div>
+        </div>
+        <div>
+          <h1>Errors</h1>
+          <div>
+            {errors.map((error, index) => (
+              <div key={index} className="error-message">
+                ⚠️ {error}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
