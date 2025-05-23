@@ -6,12 +6,6 @@ def ir(ast):
     variable_values = []
     stdout = ''
     stderr = ''
-    errors = {
-        'LexicalError' : [],
-        'SyntaxError' : [],
-        'RuntimeError' : [],
-        'SemanticError' : []
-    }
 
     def eval_bound(bound):
         """
@@ -93,9 +87,6 @@ def ir(ast):
                 size = eval_bound(size_obj)
                 charset_spec = params.get('charset', '')
                 charset = charset_spec.split('+') if charset_spec else ['upper','lower','digit','special']
-                if size < 0:
-                    RuntimeError.append(f"String size cannot be negative: {size}")
-                    
                 val = generate_string(size, charset)
                 constraints = {
                     'size': size_obj,

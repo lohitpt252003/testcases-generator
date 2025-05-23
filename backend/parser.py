@@ -1,7 +1,4 @@
-def parse(token_object):
-    tokens = token_object['tokens']
-    errors = token_object['errors']
-    
+def parse(tokens):
     tokens = [token for token in tokens if token.type != 'COMMENT']
     ast = []
     index = 0
